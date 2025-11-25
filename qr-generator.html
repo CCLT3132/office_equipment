@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QR Code Generator</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 500px;
+            width: 100%;
+            text-align: center;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+
+        .input-group {
+            margin-bottom: 25px;
+        }
+
+        label {
+            display: block;
+            text-align: left;
+            margin-bottom: 8px;
+            color: #555;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        input[type="text"] {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+
+        input[type="text"]:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .options {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        .option-group {
+            text-align: left;
+        }
+
+        .option-group label {
+            margin-bottom: 5px;
+        }
+
+        select {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 14px;
+            background: white;
+            cursor: pointer;
+        }
+
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 14px 40px;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            margin: 5px;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        #qrcode {
+            margin: 30px auto;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 15px;
+            display: inline-block;
+        }
+
+        #qrcode canvas {
+            border-radius: 10px;
+        }
+
+        .success-message {
+            color: #10b981;
+            margin-top: 15px;
+            font-weight: 600;
+            display: none;
+        }
+
+        .color-picker-group {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        .color-option {
+            text-align: left;
+        }
+
+        .color-input-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        input[type="color"] {
+            width: 50px;
+            height: 40px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+
+        .color-value {
+            font-family: monospace;
+            font-size: 12px;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎨 สร้าง QR Code</h1>
+        <p class="subtitle">สร้าง QR Code สวยงามได้ง่ายๆ</p>
+
+        <div class="input-group">
+            <label for="dataInput">URL หรือข้อความ</label>
+            <input type="text" id="dataInput" placeholder="https://forms.gle/qUpqyfNANH2Nf9bK9" value="https://forms.gle/qUpqyfNANH2Nf9bK9">
+        </div>
+
+        <div class="options">
+            <div class="option-group">
+                <label for="sizeSelect">ขนาด QR</label>
+                <select id="sizeSelect">
+                    <option value="128">เล็ก (128px)</option>
+                    <option value="256" selected>กลาง (256px)</option>
+                    <option value="512">ใหญ่ (512px)</option>
+                </select>
+            </div>
+            <div class="option-group">
+                <label for="errorLevel">ระดับการป้องกัน</label>
+                <select id="errorLevel">
+                    <option value="L">ต่ำ (L)</option>
+                    <option value="M">ปานกลาง (M)</option>
+                    <option value="Q">สูง (Q)</option>
+                    <option value="H" selected>สูงสุด (H)</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="color-picker-group">
+            <div class="color-option">
+                <label>สี QR Code</label>
+                <div class="color-input-wrapper">
+                    <input type="color" id="fillColor" value="#000000">
+                    <span class="color-value" id="fillColorValue">#000000</span>
+                </div>
+            </div>
+            <div class="color-option">
+                <label>สีพื้นหลัง</label>
+                <div class="color-input-wrapper">
+                    <input type="color" id="bgColor" value="#ffffff">
+                    <span class="color-value" id="bgColorValue">#ffffff</span>
+                </div>
+            </div>
+        </div>
+
+        <button onclick="generateQR()">✨ สร้าง QR Code</button>
+        <button onclick="downloadQR()" id="downloadBtn" style="display: none;">💾 ดาวน์โหลด</button>
+
+        <div id="qrcode"></div>
+        <p class="success-message" id="successMsg">✅ สร้าง QR Code สำเร็จ!</p>
+    </div>
+
+    <script>
+        let qrCodeInstance = null;
+
+        // Update color value display
+        document.getElementById('fillColor').addEventListener('input', (e) => {
+            document.getElementById('fillColorValue').textContent = e.target.value;
+        });
+
+        document.getElementById('bgColor').addEventListener('input', (e) => {
+            document.getElementById('bgColorValue').textContent = e.target.value;
+        });
+
+        // Generate on page load
+        window.onload = () => {
+            generateQR();
+        };
+
+        function generateQR() {
+            const data = document.getElementById('dataInput').value;
+            const size = parseInt(document.getElementById('sizeSelect').value);
+            const errorLevel = document.getElementById('errorLevel').value;
+            const fillColor = document.getElementById('fillColor').value;
+            const bgColor = document.getElementById('bgColor').value;
+
+            if (!data) {
+                alert('⚠️ กรุณาใส่ URL หรือข้อความ');
+                return;
+            }
+
+            // Clear previous QR code
+            const qrContainer = document.getElementById('qrcode');
+            qrContainer.innerHTML = '';
+
+            // Create new QR code
+            qrCodeInstance = new QRCode(qrContainer, {
+                text: data,
+                width: size,
+                height: size,
+                colorDark: fillColor,
+                colorLight: bgColor,
+                correctLevel: QRCode.CorrectLevel[errorLevel]
+            });
+
+            // Show success message and download button
+            document.getElementById('successMsg').style.display = 'block';
+            document.getElementById('downloadBtn').style.display = 'inline-block';
+        }
+
+        function downloadQR() {
+            const canvas = document.querySelector('#qrcode canvas');
+            if (!canvas) {
+                alert('⚠️ กรุณาสร้าง QR Code ก่อน');
+                return;
+            }
+
+            // Convert canvas to blob and download
+            canvas.toBlob((blob) => {
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'qrcode.png';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            });
+        }
+
+        // Generate QR on Enter key
+        document.getElementById('dataInput').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                generateQR();
+            }
+        });
+    </script>
+</body>
+</html>
