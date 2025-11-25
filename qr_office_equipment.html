@@ -119,20 +119,29 @@
   <script>
     let currentQRData = null;
 
-    // แปลง Google Drive URL เป็น Direct Link
+    // แปลง Google Drive URL เป็น Thumbnail API
     function convertGDriveUrl(url) {
       if (!url) return url;
       
-      // ถ้าเป็น URL จาก Google Drive
-      const match = url.match(/\/d\/([a-zA-Z0-9_-]+)/);
-      if (match) {
-        return `https://drive.google.com/uc?export=view&id=${match[1]}`;
-      }
-      
-      // ถ้าเป็น URL แบบแชร์
-      const shareMatch = url.match(/id=([a-zA-Z0-9_-]+)/);
-      if (shareMatch && url.includes('drive.google.com')) {
-        return `https://drive.google.com/uc?export=view&id=${shareMatch[1]}`;
+      // ถ้าเป็น URL จาก Google Drive ใช้ Thumbnail API
+      if (url.includes('drive.google.com')) {
+        // ดึง FILE_ID จาก URL
+        let match = url.match(/\/file\/d\/([a-zA-Z0-9_-]+)/);
+        if (match) {
+          return `https://drive.google.com/thumbnail?id=${match[1]}&sz=w800`;
+        }
+        
+        // รูปแบบ ?id=FILE_ID
+        match = url.match(/[?&]id=([a-zA-Z0-9_-]+)/);
+        if (match) {
+          return `https://drive.google.com/thumbnail?id=${match[1]}&sz=w800`;
+        }
+        
+        // ลอง extract FILE_ID โดยตรง
+        match = url.match(/([a-zA-Z0-9_-]{25,})/);
+        if (match) {
+          return `https://drive.google.com/thumbnail?id=${match[0]}&sz=w800`;
+        }
       }
       
       return url;
