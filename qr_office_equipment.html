@@ -38,7 +38,8 @@
         <textarea id="note" placeholder="หมายเหตุ" rows="2" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"></textarea>
 
         <div class="space-y-2">
-          <label class="text-sm font-medium text-gray-700">รูปภาพ (URL)</label>
+          <label class="text-sm font-medium text-gray-700">รูปภาพ (URL จาก Google Drive)</label>
+          <p class="text-xs text-gray-500 mb-2">💡 วาง URL จาก Google Drive ได้เลย ระบบจะแปลงให้อัตโนมัติ</p>
           <input id="img1" placeholder="URL รูปที่ 1" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent">
           <input id="img2" placeholder="URL รูปที่ 2" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent">
           <input id="img3" placeholder="URL รูปที่ 3" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent">
@@ -100,7 +101,7 @@
 
           <div>
             <label class="text-xs font-semibold text-emerald-700 uppercase tracking-wide mb-3 block">รูปภาพ</label>
-            <div id="displayImages" class="grid grid-cols-2 gap-4"></div>
+            <div id="displayImages" class="space-y-4"></div>
           </div>
         </div>
       </div>
@@ -117,6 +118,25 @@
 
   <script>
     let currentQRData = null;
+
+    // แปลง Google Drive URL เป็น Direct Link
+    function convertGDriveUrl(url) {
+      if (!url) return url;
+      
+      // ถ้าเป็น URL จาก Google Drive
+      const match = url.match(/\/d\/([a-zA-Z0-9_-]+)/);
+      if (match) {
+        return `https://drive.google.com/uc?export=view&id=${match[1]}`;
+      }
+      
+      // ถ้าเป็น URL แบบแชร์
+      const shareMatch = url.match(/id=([a-zA-Z0-9_-]+)/);
+      if (shareMatch && url.includes('drive.google.com')) {
+        return `https://drive.google.com/uc?export=view&id=${shareMatch[1]}`;
+      }
+      
+      return url;
+    }
 
     function showTab(tab) {
       if (tab === 'create') {
@@ -139,10 +159,10 @@
       const note = document.getElementById('note').value;
       
       const imgs = [
-        document.getElementById('img1').value,
-        document.getElementById('img2').value,
-        document.getElementById('img3').value,
-        document.getElementById('img4').value
+        convertGDriveUrl(document.getElementById('img1').value),
+        convertGDriveUrl(document.getElementById('img2').value),
+        convertGDriveUrl(document.getElementById('img3').value),
+        convertGDriveUrl(document.getElementById('img4').value)
       ].filter(img => img);
 
       const data = `รหัส:${code}\nชื่อ:${name}\nที่ตั้ง:${location}\nหมายเหตุ:${note}\nรูป:${imgs.join(',')}`;
@@ -248,14 +268,22 @@
         imgContainer.innerHTML = '';
         
         if (info.imgs && info.imgs.length > 0) {
-          info.imgs.forEach(imgUrl => {
+          info.imgs.forEach((imgUrl, index) => {
             const div = document.createElement('div');
-            div.className = 'rounded-lg overflow-hidden shadow-md';
-            div.innerHTML = `<img src="${imgUrl.trim()}" alt="รูปอุปกรณ์" class="w-full h-48 object-cover" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22200%22 height=%22200%22%3E%3Crect fill=%22%23ddd%22 width=%22200%22 height=%22200%22/%3E%3Ctext x=%2250%25%22 y=%2250%25%22 text-anchor=%22middle%22 dy=%22.3em%22 fill=%22%23999%22%3ENo Image%3C/text%3E%3C/svg%3E'">`;
+            div.className = 'rounded-lg overflow-hidden shadow-lg border-2 border-emerald-100';
+            const img = document.createElement('img');
+            img.src = imgUrl.trim();
+            img.alt = `รูปอุปกรณ์ ${index + 1}`;
+            img.className = 'w-full h-auto object-contain bg-gray-50';
+            img.style.maxHeight = '400px';
+            img.onerror = function() {
+              this.src = 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22400%22 height=%22300%22%3E%3Crect fill=%22%23f3f4f6%22 width=%22400%22 height=%22300%22/%3E%3Ctext x=%2250%25%22 y=%2250%25%22 text-anchor=%22middle%22 dy=%22.3em%22 fill=%22%23999%22 font-size=%2220%22%3Eไม่สามารถโหลดรูปได้%3C/text%3E%3C/svg%3E';
+            };
+            div.appendChild(img);
             imgContainer.appendChild(div);
           });
         } else {
-          imgContainer.innerHTML = '<p class="text-gray-500 col-span-2">ไม่มีรูปภาพ</p>';
+          imgContainer.innerHTML = '<p class="text-gray-500">ไม่มีรูปภาพ</p>';
         }
 
         document.getElementById('noData').classList.add('hidden');
