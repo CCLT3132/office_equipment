@@ -14,7 +14,7 @@
 
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #e0f2fe 0%, #bae6fd 100%);
             min-height: 100vh;
             display: flex;
             justify-content: center;
@@ -33,13 +33,13 @@
         }
 
         h1 {
-            color: #333;
+            color: #0369a1;
             margin-bottom: 10px;
             font-size: 28px;
         }
 
         .subtitle {
-            color: #666;
+            color: #0284c7;
             margin-bottom: 30px;
             font-size: 14px;
         }
@@ -68,7 +68,7 @@
 
         input[type="text"]:focus {
             outline: none;
-            border-color: #667eea;
+            border-color: #0ea5e9;
         }
 
         .options {
@@ -97,7 +97,7 @@
         }
 
         button {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%);
             color: white;
             border: none;
             padding: 14px 40px;
@@ -111,7 +111,7 @@
 
         button:hover {
             transform: translateY(-2px);
-            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
+            box-shadow: 0 10px 25px rgba(14, 165, 233, 0.4);
         }
 
         button:active {
@@ -121,21 +121,26 @@
         #qrcode {
             margin: 30px auto;
             padding: 20px;
-            background: #f8f9fa;
+            background: #f0f9ff;
             border-radius: 15px;
             display: inline-block;
+            border: 2px solid #bae6fd;
         }
 
         #qrcode canvas {
             border-radius: 10px;
+            border: 10px solid white;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         }
 
         .success-message {
-            color: #10b981;
+            color: #0284c7;
             margin-top: 15px;
             font-weight: 600;
             display: none;
         }
+
+
 
         .color-picker-group {
             display: grid;
@@ -278,8 +283,23 @@
                 return;
             }
 
-            // Convert canvas to blob and download
-            canvas.toBlob((blob) => {
+            // Create a new canvas with border
+            const borderSize = 20;
+            const newCanvas = document.createElement('canvas');
+            const ctx = newCanvas.getContext('2d');
+            
+            newCanvas.width = canvas.width + (borderSize * 2);
+            newCanvas.height = canvas.height + (borderSize * 2);
+            
+            // Draw white background (border)
+            ctx.fillStyle = 'white';
+            ctx.fillRect(0, 0, newCanvas.width, newCanvas.height);
+            
+            // Draw QR code in center
+            ctx.drawImage(canvas, borderSize, borderSize);
+            
+            // Convert to blob and download
+            newCanvas.toBlob((blob) => {
                 const url = URL.createObjectURL(blob);
                 const a = document.createElement('a');
                 a.href = url;
