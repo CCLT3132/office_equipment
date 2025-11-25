@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>QR Code System</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
+  <div class="max-w-3xl mx-auto">
+    <!-- แท็บ -->
+    <div class="flex gap-2 mb-4">
+      <button onclick="showTab('create')" id="tabCreate" class="flex-1 py-3 px-6 bg-white text-indigo-600 font-semibold rounded-xl shadow-lg">
+        สร้าง QR Code
+      </button>
+      <button onclick="showTab('view')" id="tabView" class="flex-1 py-3 px-6 bg-white/50 text-gray-600 font-semibold rounded-xl">
+        แสดงข้อมูล
+      </button>
+    </div>
+
+    <!-- หน้าสร้าง QR -->
+    <div id="createTab" class="bg-white rounded-2xl shadow-xl p-6">
+      <div class="flex items-center gap-3 mb-6">
+        <svg class="w-8 h-8 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path>
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path>
+        </svg>
+        <h1 class="text-2xl font-bold text-gray-800">สร้าง QR Code</h1>
+      </div>
+
+      <div class="space-y-3">
+        <input id="code" placeholder="รหัสอุปกรณ์" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent">
+        
+        <input id="name" placeholder="ชื่ออุปกรณ์" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent">
+        
+        <input id="location" placeholder="Location" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent">
+        
+        <textarea id="note" placeholder="หมายเหตุ" rows="2" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"></textarea>
+
+        <div class="space-y-2">
+          <label class="text-sm font-medium text-gray-700">รูปภาพ (URL)</label>
+          <input id="img1" placeholder="URL รูปที่ 1" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent">
+          <input id="img2" placeholder="URL รูปที่ 2" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent">
+          <input id="img3" placeholder="URL รูปที่ 3" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent">
+          <input id="img4" placeholder="URL รูปที่ 4" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent">
+        </div>
+
+        <button onclick="generateQR()" class="w-full bg-indigo-600 text-white py-3 rounded-lg font-semibold hover:bg-indigo-700 transition-colors">
+          สร้าง QR Code
+        </button>
+      </div>
+
+      <div id="result" class="mt-6 text-center hidden">
+        <img id="qrImg" src="" alt="QR Code" class="mx-auto border-4 border-indigo-100 rounded-lg shadow-lg">
+        <div class="mt-4 space-y-2">
+          <button onclick="downloadQR()" class="inline-block bg-indigo-600 text-white px-6 py-2 rounded-lg font-medium hover:bg-indigo-700 transition-colors">
+            ดาวน์โหลด QR Code
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- หน้าแสดงข้อมูล -->
+    <div id="viewTab" class="bg-white rounded-2xl shadow-xl p-6 hidden">
+      <div class="flex items-center gap-3 mb-6">
+        <svg class="w-8 h-8 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+        </svg>
+        <h1 class="text-2xl font-bold text-gray-800">แสดงข้อมูลอุปกรณ์</h1>
+      </div>
+
+      <div id="dataDisplay" class="hidden">
+        <div class="bg-gradient-to-r from-emerald-50 to-teal-50 rounded-xl p-6 space-y-4">
+          <div class="border-b border-emerald-200 pb-3">
+            <label class="text-xs font-semibold text-emerald-700 uppercase tracking-wide">รหัสอุปกรณ์</label>
+            <p id="displayCode" class="text-xl font-bold text-gray-800 mt-1"></p>
+          </div>
+
+          <div class="border-b border-emerald-200 pb-3">
+            <label class="text-xs font-semibold text-emerald-700 uppercase tracking-wide">ชื่ออุปกรณ์</label>
+            <p id="displayName" class="text-lg text-gray-800 mt-1"></p>
+          </div>
+
+          <div class="border-b border-emerald-200 pb-3">
+            <label class="text-xs font-semibold text-emerald-700 uppercase tracking-wide">Location</label>
+            <p id="displayLocation" class="text-lg text-gray-800 mt-1"></p>
+          </div>
+
+          <div class="border-b border-emerald-200 pb-3">
+            <label class="text-xs font-semibold text-emerald-700 uppercase tracking-wide">หมายเหตุ</label>
+            <p id="displayNote" class="text-gray-700 mt-1"></p>
+          </div>
+
+          <div>
+            <label class="text-xs font-semibold text-emerald-700 uppercase tracking-wide mb-3 block">รูปภาพ</label>
+            <div id="displayImages" class="grid grid-cols-2 gap-4"></div>
+          </div>
+        </div>
+      </div>
+
+      <div id="noData" class="text-center py-12">
+        <svg class="w-16 h-16 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"></path>
+        </svg>
+        <p class="text-gray-600 text-lg font-medium">สแกน QR Code เพื่อดูข้อมูล</p>
+        <p class="text-gray-500 text-sm mt-2">หรือแชร์ลิงก์ที่มี QR Code ให้ผู้อื่น</p>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let currentQRData = null;
+
+    function showTab(tab) {
+      if (tab === 'create') {
+        document.getElementById('createTab').classList.remove('hidden');
+        document.getElementById('viewTab').classList.add('hidden');
+        document.getElementById('tabCreate').className = 'flex-1 py-3 px-6 bg-white text-indigo-600 font-semibold rounded-xl shadow-lg';
+        document.getElementById('tabView').className = 'flex-1 py-3 px-6 bg-white/50 text-gray-600 font-semibold rounded-xl';
+      } else {
+        document.getElementById('createTab').classList.add('hidden');
+        document.getElementById('viewTab').classList.remove('hidden');
+        document.getElementById('tabCreate').className = 'flex-1 py-3 px-6 bg-white/50 text-gray-600 font-semibold rounded-xl';
+        document.getElementById('tabView').className = 'flex-1 py-3 px-6 bg-white text-emerald-600 font-semibold rounded-xl shadow-lg';
+      }
+    }
+
+    async function generateQR() {
+      const code = document.getElementById('code').value;
+      const name = document.getElementById('name').value;
+      const location = document.getElementById('location').value;
+      const note = document.getElementById('note').value;
+      
+      const imgs = [
+        document.getElementById('img1').value,
+        document.getElementById('img2').value,
+        document.getElementById('img3').value,
+        document.getElementById('img4').value
+      ].filter(img => img);
+
+      const data = `รหัส:${code}\nชื่อ:${name}\nที่ตั้ง:${location}\nหมายเหตุ:${note}\nรูป:${imgs.join(',')}`;
+      const baseUrl = window.location.href.split('?')[0];
+      const fullUrl = `${baseUrl}?data=${encodeURIComponent(data)}`;
+      const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(fullUrl)}`;
+      
+      document.getElementById('qrImg').src = qrUrl;
+      document.getElementById('result').classList.remove('hidden');
+      
+      currentQRData = { qrUrl, code };
+    }
+
+    async function downloadQR() {
+      if (!currentQRData) return;
+      
+      try {
+        const response = await fetch(currentQRData.qrUrl);
+        const blob = await response.blob();
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `qr_${currentQRData.code || 'code'}.png`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      } catch (e) {
+        alert('ไม่สามารถดาวน์โหลดได้ กรุณาลองอีกครั้ง');
+      }
+    }
+
+    function loadDataFromUrl() {
+      const urlParams = new URLSearchParams(window.location.search);
+      const data = urlParams.get('data');
+      
+      if (data) {
+        showTab('view');
+        const decoded = decodeURIComponent(data);
+        const lines = decoded.split('\n');
+        const info = {};
+        
+        lines.forEach(line => {
+          const [key, ...valueParts] = line.split(':');
+          const value = valueParts.join(':');
+          if (key.includes('รหัส')) info.code = value;
+          else if (key.includes('ชื่อ')) info.name = value;
+          else if (key.includes('ที่ตั้ง')) info.location = value;
+          else if (key.includes('หมายเหตุ')) info.note = value;
+          else if (key.includes('รูป')) info.imgs = value.split(',').filter(i => i);
+        });
+
+        document.getElementById('displayCode').textContent = info.code || '-';
+        document.getElementById('displayName').textContent = info.name || '-';
+        document.getElementById('displayLocation').textContent = info.location || '-';
+        document.getElementById('displayNote').textContent = info.note || '-';
+        
+        const imgContainer = document.getElementById('displayImages');
+        imgContainer.innerHTML = '';
+        
+        if (info.imgs && info.imgs.length > 0) {
+          info.imgs.forEach(imgUrl => {
+            const div = document.createElement('div');
+            div.className = 'rounded-lg overflow-hidden shadow-md';
+            div.innerHTML = `<img src="${imgUrl.trim()}" alt="รูปอุปกรณ์" class="w-full h-48 object-cover" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22200%22 height=%22200%22%3E%3Crect fill=%22%23ddd%22 width=%22200%22 height=%22200%22/%3E%3Ctext x=%2250%25%22 y=%2250%25%22 text-anchor=%22middle%22 dy=%22.3em%22 fill=%22%23999%22%3ENo Image%3C/text%3E%3C/svg%3E'">`;
+            imgContainer.appendChild(div);
+          });
+        } else {
+          imgContainer.innerHTML = '<p class="text-gray-500 col-span-2">ไม่มีรูปภาพ</p>';
+        }
+
+        document.getElementById('noData').classList.add('hidden');
+        document.getElementById('dataDisplay').classList.remove('hidden');
+      }
+    }
+
+    window.addEventListener('DOMContentLoaded', loadDataFromUrl);
+  </script>
+</body>
+</html>
