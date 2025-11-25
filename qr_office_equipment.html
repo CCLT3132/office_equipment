@@ -52,10 +52,17 @@
 
       <div id="result" class="mt-6 text-center hidden">
         <img id="qrImg" src="" alt="QR Code" class="mx-auto border-4 border-indigo-100 rounded-lg shadow-lg">
-        <div class="mt-4 space-y-2">
+        <div class="mt-4 space-y-3">
           <button onclick="downloadQR()" class="inline-block bg-indigo-600 text-white px-6 py-2 rounded-lg font-medium hover:bg-indigo-700 transition-colors">
             ดาวน์โหลด QR Code
           </button>
+          <div class="p-3 bg-gray-50 rounded-lg">
+            <p class="text-xs text-gray-600 mb-1">URL สำหรับแชร์:</p>
+            <input id="shareUrl" readonly class="w-full text-xs p-2 border rounded bg-white" onclick="this.select()">
+            <button onclick="copyUrl()" class="mt-2 text-xs bg-gray-200 hover:bg-gray-300 px-4 py-1 rounded transition-colors">
+              📋 คัดลอก URL
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -144,28 +151,72 @@
       const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(fullUrl)}`;
       
       document.getElementById('qrImg').src = qrUrl;
+      document.getElementById('shareUrl').value = fullUrl;
       document.getElementById('result').classList.remove('hidden');
       
-      currentQRData = { qrUrl, code };
+      currentQRData = { qrUrl, code, fullUrl };
     }
 
     async function downloadQR() {
       if (!currentQRData) return;
       
       try {
+        // ดึง QR มา
         const response = await fetch(currentQRData.qrUrl);
         const blob = await response.blob();
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `qr_${currentQRData.code || 'code'}.png`;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
+        
+        // สร้าง canvas เพื่อวาดขอบ
+        const img = new Image();
+        const reader = new FileReader();
+        
+        reader.onload = (e) => {
+          img.onload = () => {
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            const padding = 20;
+            
+            canvas.width = img.width + (padding * 2);
+            canvas.height = img.height + (padding * 2);
+            
+            // วาดพื้นหลังขาว
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // วาดขอบ
+            ctx.strokeStyle = '#818cf8';
+            ctx.lineWidth = 8;
+            ctx.strokeRect(4, 4, canvas.width - 8, canvas.height - 8);
+            
+            // วาด QR ตรงกลาง
+            ctx.drawImage(img, padding, padding);
+            
+            // ดาวน์โหลด
+            canvas.toBlob((finalBlob) => {
+              const url = URL.createObjectURL(finalBlob);
+              const a = document.createElement('a');
+              a.href = url;
+              a.download = `qr_${currentQRData.code || 'code'}.png`;
+              document.body.appendChild(a);
+              a.click();
+              document.body.removeChild(a);
+              URL.revokeObjectURL(url);
+            });
+          };
+          img.src = e.target.result;
+        };
+        reader.readAsDataURL(blob);
       } catch (e) {
         alert('ไม่สามารถดาวน์โหลดได้ กรุณาลองอีกครั้ง');
       }
+    }
+
+    function copyUrl() {
+      const urlInput = document.getElementById('shareUrl');
+      urlInput.select();
+      urlInput.setSelectionRange(0, 99999);
+      navigator.clipboard.writeText(urlInput.value).then(() => {
+        alert('คัดลอก URL แล้ว!');
+      });
     }
 
     function loadDataFromUrl() {
