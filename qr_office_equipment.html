@@ -260,18 +260,27 @@
       if (data) {
         showTab('view');
         const decoded = decodeURIComponent(data);
-        const lines = decoded.split('\n');
         const info = {};
-        
-        lines.forEach(line => {
-          const [key, ...valueParts] = line.split(':');
-          const value = valueParts.join(':');
-          if (key.includes('รหัส')) info.code = value;
-          else if (key.includes('ชื่อ')) info.name = value;
-          else if (key.includes('ที่ตั้ง')) info.location = value;
-          else if (key.includes('หมายเหตุ')) info.note = value;
-          else if (key.includes('รูป')) info.imgs = value.split(',').filter(i => i);
-        });
+
+        // แยก field หลักด้วย regex เพื่อรองรับหมายเหตุหลายบรรทัด
+        const codeMatch = decoded.match(/รหัส:([^\n]*)/);
+        const nameMatch = decoded.match(/ชื่อ:([^\n]*)/);
+        const locMatch  = decoded.match(/ที่ตั้ง:([^\n]*)/);
+        const imgMatch  = decoded.match(/รูป:([^\n]*)/);
+        // หมายเหตุ: เก็บทุกอย่างระหว่าง "หมายเหตุ:" จนถึง "\nรูป:"
+        const noteMatch = decoded.match(/หมายเหตุ:([\s\S]*?)(?=\nรูป:)/);
+
+        if (codeMatch) info.code     = codeMatch[1];
+        if (nameMatch) info.name     = nameMatch[1];
+        if (locMatch)  info.location = locMatch[1];
+        if (noteMatch) info.note     = noteMatch[1];
+        else {
+          // กรณีไม่มีรูปตามหลัง ให้เก็บตั้งแต่ "หมายเหตุ:" จนจบ
+          const fallback = decoded.match(/หมายเหตุ:([\s\S]*)/);
+          if (fallback) info.note = fallback[1];
+        }
+        if (imgMatch) info.imgs = imgMatch[1].split(',').filter(i => i);
+
 
         document.getElementById('displayCode').textContent = info.code || '-';
         document.getElementById('displayName').textContent = info.name || '-';
